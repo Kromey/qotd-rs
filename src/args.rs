@@ -44,6 +44,10 @@ pub struct Cli {
     )]
     pub host: String,
 
+    /// If present, log all output to the provided file
+    #[arg(long, short, value_hint = clap::ValueHint::FilePath)]
+    pub log_file: Option<PathBuf>,
+
     /// Choose only from offensive quotes (see --categories)
     #[arg(long, short)]
     offensive: bool,
@@ -78,7 +82,7 @@ impl Cli {
         }
     }
 
-    pub fn verbosity(&self) -> tracing::Level {
+    pub fn verbosity(&self) -> tracing::level_filters::LevelFilter {
         match self.verbosity {
             0 => {
                 if self.quiet {
@@ -91,6 +95,7 @@ impl Cli {
             2 => tracing::Level::DEBUG,
             _ => tracing::Level::TRACE,
         }
+        .into()
     }
 }
 

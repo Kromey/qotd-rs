@@ -13,7 +13,7 @@ use tokio::{
         oneshot,
     },
 };
-use tracing::{debug, error, info, instrument, trace, warn, Instrument};
+use tracing::{debug, error, info, trace, warn};
 
 struct GetQotd(oneshot::Sender<Vec<u8>>);
 
@@ -47,7 +47,6 @@ impl Server {
         Self::default()
     }
 
-    #[instrument(skip(self))]
     pub async fn bind<A: ToSocketAddrs + std::fmt::Debug>(
         mut self,
         address: A,
@@ -82,7 +81,6 @@ impl Server {
     /// Drop elevated privileges
     ///
     /// This is currently a no-op on non-Unix/non-Unix-like systems (e.g. Windows)
-    #[instrument(skip(self))]
     pub fn drop_privileges(self, name: &str) -> anyhow::Result<Self> {
         #[cfg(unix)]
         {
@@ -104,7 +102,6 @@ impl Server {
         Ok(self)
     }
 
-    #[instrument(skip_all)]
     pub async fn serve(self, mut quotes: Quotes) -> anyhow::Result<()> {
         // Get our bound ports
         let tcp = self.tcp_socket.context("Not bound to TCP socket")?;
@@ -119,25 +116,22 @@ impl Server {
 
         let (getqotd_tx, mut getqotd_rx) = channel::<GetQotd>(32);
 
-        tokio::spawn(
-            async move {
-                loop {
-                    let quote = quotes
-                        .random_quote()
-                        .await
-                        .context("Failed to choose quote")?;
-                    debug!("Chose quote, waiting");
-                    if let Some(getter) = getqotd_rx.recv().await {
-                        info!("Sending quote to requesting task");
-                        let _ = getter.0.send(quote);
-                    } else {
-                        error!("Quote channel closed!");
-                        break Err::<(), _>(anyhow::Error::msg("Quote channel closed"));
-                    }
+        tokio::spawn(async move {
+            loop {
+                let quote = quotes
+                    .random_quote()
+                    .await
+                    .context("Failed to choose quote")?;
+                debug!("Chose quote, waiting");
+                if let Some(getter) = getqotd_rx.recv().await {
+                    info!("Sending quote to requesting task");
+                    let _ = getter.0.send(quote);
+                } else {
+                    error!("Quote channel closed!");
+                    break Err::<(), _>(anyhow::Error::msg("Quote channel closed"));
                 }
             }
-            .instrument(tracing::debug_span!("quote_task")),
-        );
+        });
 
         let mut buf = [0_u8; 0];
         loop {
@@ -157,7 +151,7 @@ impl Server {
                         conn.write_all(&quote).await?;
                         info!("Done! Closing connection");
                         anyhow::Ok(())
-                    }.instrument(tracing::info_span!("tcp_server")));
+                    });
                 },
                 client = udp.recv_from(&mut buf) => {
                     let (_, addr) = client.context("Failed to connect UDP client")?;
@@ -176,7 +170,7 @@ impl Server {
                             }
                             info!("Quote too long for UDP client ({}), retrying", quote.len());
                         }
-                    }.instrument(tracing::info_span!("udp_server")));
+                    });
                 },
             };
         }
