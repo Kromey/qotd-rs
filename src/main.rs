@@ -25,6 +25,14 @@ async fn main() -> anyhow::Result<()> {
         registry.init();
     }
 
+    let ret = run(args).await;
+    if let Err(e) = &ret {
+        tracing::error!("{e:?}");
+    }
+    ret.context("Server exited with fatal error")
+}
+
+async fn run(args: qotd_rs::Cli) -> anyhow::Result<()> {
     // Get our quotes
     let categories = args.allowed_categories();
     let quotes = qotd_rs::Quotes::from_dir(args.dir, &categories).await?;
