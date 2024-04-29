@@ -9,6 +9,11 @@ name = "qotd-server"
 path = "src/bin/run.rs"
 required-features = ["cli"]
 
+[[bin]]
+name = "qotd"
+path = "src/bin/client.rs"
+required-features = ["cli"]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
