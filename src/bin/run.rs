@@ -6,7 +6,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, Layer};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    let args = qotd_rs::Cli::parse();
+    let args = qotd::Cli::parse();
 
     // Set up our logging
     let registry = tracing_subscriber::registry()
@@ -32,13 +32,13 @@ async fn main() -> anyhow::Result<()> {
     ret.context("Server exited with fatal error")
 }
 
-async fn run(args: qotd_rs::Cli) -> anyhow::Result<()> {
+async fn run(args: qotd::Cli) -> anyhow::Result<()> {
     // Get our quotes
     let categories = args.allowed_categories();
-    let quotes = qotd_rs::Quotes::from_dir(args.dir, &categories).await?;
+    let quotes = qotd::Quotes::from_dir(args.dir, &categories).await?;
 
     // Start the server
-    qotd_rs::Server::new()
+    qotd::Server::new()
         .bind((args.host, args.port))
         .await?
         .drop_privileges(args.user)?
