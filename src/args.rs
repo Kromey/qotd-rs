@@ -12,7 +12,7 @@ use crate::{AllowedCategories, QuoteCategory};
 #[command(version, about, next_line_help = true)]
 pub struct Cli {
     /// Choose from all available quotes, both offensive and not (see --categories)
-    #[arg(short)]
+    #[arg(long, short)]
     all: bool,
 
     /// Allowed quote categories
@@ -45,7 +45,7 @@ pub struct Cli {
     pub host: String,
 
     /// Choose only from offensive quotes (see --categories)
-    #[arg(short)]
+    #[arg(long, short)]
     offensive: bool,
 
     /// Port to listen on
