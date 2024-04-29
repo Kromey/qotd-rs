@@ -72,6 +72,12 @@ pub struct Cli {
     #[arg(long, short, default_value_t = 17)]
     pub port: u16,
 
+    /// User to run the server as
+    ///
+    /// NOTE: This is currently only supported on Unix-like operating systems
+    #[arg(long, short, default_value = "nobody")]
+    pub user: String,
+
     /// Reduce output
     ///
     /// This option is ignored if any number of --verbose flags are present

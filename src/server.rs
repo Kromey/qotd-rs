@@ -81,12 +81,14 @@ impl Server {
     /// Drop elevated privileges
     ///
     /// This is currently a no-op on non-Unix/non-Unix-like systems (e.g. Windows)
-    pub fn drop_privileges(self, name: &str) -> anyhow::Result<Self> {
+    pub fn drop_privileges<S: AsRef<str>>(self, name: S) -> anyhow::Result<Self> {
         #[cfg(unix)]
         {
             use nix::unistd::{setgid, setuid, User};
 
-            if let Some(user) = User::from_name(name).context("Failed to get user")? {
+            if let Some(user) = User::from_name(name.as_ref())
+                .context(format!("Failed to get user: {}", name.as_ref()))?
+            {
                 // Must drop gid first: dropping uid first robs us of our permissions to change our gid!
                 setgid(user.gid)
                     .context(format!("Failed to set gid: {}", user.gid))

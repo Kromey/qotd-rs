@@ -41,7 +41,7 @@ async fn run(args: qotd_rs::Cli) -> anyhow::Result<()> {
     qotd_rs::Server::new()
         .bind((args.host, args.port))
         .await?
-        .drop_privileges("nobody")?
+        .drop_privileges(args.user)?
         .serve(quotes)
         .await
 }
