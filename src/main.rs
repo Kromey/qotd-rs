@@ -18,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
                 tracing_subscriber::fmt::layer()
                     .with_ansi(false)
                     .with_writer(Mutex::new(log_file))
-                    .with_filter(args.verbosity()),
+                    .with_filter(args.file_verbosity()),
             )
             .init();
     } else {

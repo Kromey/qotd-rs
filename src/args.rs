@@ -3,9 +3,18 @@
 
 use std::path::PathBuf;
 
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 
 use crate::{AllowedCategories, QuoteCategory};
+
+#[derive(Debug, ValueEnum, Clone, Copy, PartialEq, Eq)]
+enum FileLogLevel {
+    Error,
+    Warn,
+    Info,
+    Debug,
+    Trace,
+}
 
 /// A Quote of the Day Protocol (RFC 865) server
 #[derive(Debug, Parser)]
@@ -34,6 +43,13 @@ pub struct Cli {
     /// file is assumed to not be encoded.
     #[arg(long, short, default_value = default_dir().into_os_string(), value_hint = clap::ValueHint::DirPath)]
     pub dir: PathBuf,
+
+    /// Log level for file
+    ///
+    /// If not provided, log file will default to the same level of output as the console.
+    /// Must specify --log_file if providing this parameter.
+    #[arg(long, short, value_enum, requires = "log_file")]
+    file_log_level: Option<FileLogLevel>,
 
     /// Address to bind to
     #[arg(
@@ -96,6 +112,19 @@ impl Cli {
             _ => tracing::Level::TRACE,
         }
         .into()
+    }
+
+    pub fn file_verbosity(&self) -> tracing::level_filters::LevelFilter {
+        match self.file_log_level {
+            Some(level) => match level {
+                FileLogLevel::Error => tracing::level_filters::LevelFilter::ERROR,
+                FileLogLevel::Warn => tracing::level_filters::LevelFilter::WARN,
+                FileLogLevel::Info => tracing::level_filters::LevelFilter::INFO,
+                FileLogLevel::Debug => tracing::level_filters::LevelFilter::DEBUG,
+                FileLogLevel::Trace => tracing::level_filters::LevelFilter::TRACE,
+            },
+            None => self.verbosity(),
+        }
     }
 }
 
