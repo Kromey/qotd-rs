@@ -1,12 +1,15 @@
 use clap::Parser;
-use tracing_subscriber::FmtSubscriber;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
     let args = qotd_rs::Cli::parse();
 
     // Set up our logging
-    tracing::subscriber::set_global_default(FmtSubscriber::new())?;
+    tracing::subscriber::set_global_default(
+        tracing_subscriber::fmt()
+            .with_max_level(args.verbosity())
+            .finish(),
+    )?;
 
     // Get our quotes
     let categories = args.allowed_categories();

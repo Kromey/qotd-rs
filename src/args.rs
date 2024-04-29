@@ -9,6 +9,7 @@ use crate::{AllowedCategories, QuoteCategory};
 
 /// A Quote of the Day Protocol (RFC 865) server
 #[derive(Debug, Parser)]
+#[command(version, about, next_line_help = true)]
 pub struct Cli {
     /// Choose from all available quotes, both offensive and not (see --categories)
     #[arg(short)]
@@ -51,9 +52,17 @@ pub struct Cli {
     #[arg(long, short, default_value_t = 17)]
     pub port: u16,
 
+    /// Reduce output
+    ///
+    /// This option is ignored if any number of --verbose flags are present
+    #[arg(long, short)]
+    quiet: bool,
+
     /// Increase verbosity
+    ///
+    /// This flag may appear multiple times, each appearance (up to 3) increasing the level of verbosity
     #[arg(short, long = "verbose", action = clap::ArgAction::Count)]
-    pub verbosity: u8,
+    verbosity: u8,
 }
 
 impl Cli {
@@ -66,6 +75,21 @@ impl Cli {
             AllowedCategories::Offensive.as_category_vec()
         } else {
             AllowedCategories::Decorous.as_category_vec()
+        }
+    }
+
+    pub fn verbosity(&self) -> tracing::Level {
+        match self.verbosity {
+            0 => {
+                if self.quiet {
+                    tracing::Level::ERROR
+                } else {
+                    tracing::Level::WARN
+                }
+            }
+            1 => tracing::Level::INFO,
+            2 => tracing::Level::DEBUG,
+            _ => tracing::Level::TRACE,
         }
     }
 }
