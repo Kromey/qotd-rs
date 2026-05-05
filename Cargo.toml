@@ -21,7 +21,7 @@ anyhow = "1.0.82"
 clap = { version = "4.5.4", features = ["derive", "string", "wrap_help"], optional = true }
 futures = "0.3.30"
 nix = { version = "0.28.0", features = ["user"] }
-rand = "0.8.5"
+rand = "0.8.6"
 rand_distr = "0.4.3"
 tokio = { version = "1.37.0", features = ["rt", "net", "fs", "macros", "io-util", "sync"] }
 tracing = "0.1.40"
